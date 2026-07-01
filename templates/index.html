@@ -1,22 +1,77 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Library</title>
-  </head>
-  <body>
-    <h1>My Library</h1>
+{% extends "base.html" %}
+{% block content %}
 
-    {% if books|length == 0 %}
-      <p>Library is empty.</p>
-    {% else %}
-      <ul>
-        {% for book in books %}
-          <li>{{ book.title }} — {{ book.author }} — {{ book.rating }}/10</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
+<h1 class="mb-4">My Library</h1>
 
-    <a href="{{ url_for('add') }}">Add New Book</a>
-  </body>
-</html>
+<!-- Search Bar -->
+<form method="GET" class="d-flex mb-4">
+  <input class="form-control me-2" type="search" name="q" placeholder="Search books">
+  <button class="btn btn-outline-primary">
+    <i class="bi bi-search"></i> Search
+  </button>
+</form>
+
+<!-- Sorting -->
+<div class="mb-4">
+  <a href="?q={{ request.args.get('q', '') }}&sort=title"
+     class="btn btn-outline-secondary btn-sm me-2">
+    <i class="bi bi-sort-alpha-down"></i> Sort by Title
+  </a>
+
+  <a href="?q={{ request.args.get('q', '') }}&sort=rating"
+     class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-star"></i> Sort by Rating
+  </a>
+</div>
+
+{% if books|length == 0 %}
+  <div class="alert alert-info">Library is empty.</div>
+{% else %}
+<div class="row">
+  {% for book in books %}
+    <div class="col-md-4 mb-3">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">{{ book.title }}</h5>
+          <h6 class="card-subtitle mb-2 text-muted">{{ book.author }}</h6>
+
+          <p class="star-rating">{{ "⭐" * (book.rating|int) }}</p>
+
+          <a href="{{ url_for('edit', book_id=book.id) }}" class="btn btn-primary btn-sm me-2">
+            <i class="bi bi-pencil-square"></i> Edit
+          </a>
+
+          <!-- Delete Button triggers modal -->
+          <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ book.id }}">
+            <i class="bi bi-trash"></i> Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal{{ book.id }}" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Delete Book</h5>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            Are you sure you want to delete <strong>{{ book.title }}</strong>?
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <a href="{{ url_for('delete', book_id=book.id) }}" class="btn btn-danger">
+              <i class="bi bi-trash"></i> Delete
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
